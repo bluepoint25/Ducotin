@@ -1018,3 +1018,71 @@ body {
     grid-template-columns: 1fr; 
   }
 }
+
+/* --- index.css --- */
+
+:root {
+  --teleton-red: #DC2626;
+  --teleton-red-dark: #B91C1C;
+  --bg-color: #F3F4F6;
+  --text-main: #1F2937;
+  --text-light: #6B7280;
+  --white: #ffffff;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- CAMBIO PRINCIPAL AQUÍ --- */
+.main-container {
+  max-width: 100%; /* Antes era 900px, ahora ocupa todo */
+  width: 100%;
+  margin: 0;
+  padding: 0; /* El padding lo manejará cada componente internamente */
+  padding-bottom: 60px; /* Espacio para el footer */
+}
+
+/* Header Institucional (NavBar) */
+.teleton-header {
+  background-color: var(--teleton-red);
+  color: var(--white);
+  padding: 1rem 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+/* Resto de estilos auxiliares... */
+.logo-corner {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 120px;
+  z-index: 100;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+/* Estilos para Inputs y Formularios (Reutilizables) */
+.input-field {
+  padding: 0.75rem;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  font-size: 1rem;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input-field:focus {
+  border-color: var(--teleton-red);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+}
+
+/* Botones */
+button {
+  cursor: pointer;
+}
