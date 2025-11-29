@@ -82,23 +82,29 @@ function App() {
   // 2. FUNCIÓN PARA REGISTRAR NUEVOS VOLUNTARIOS
   const handleRegistroVoluntario = (dataParaGuardar) => {
       const newId = `V${voluntarios.length + 1}`;
-      
-      // Obtener fecha de hoy en formato YYYY-MM-DD
       const hoy = new Date().toISOString().split('T')[0];
 
+      // --- ESTANDARIZACIÓN DE DATOS (BO-043) ---
+      // Convertimos textos a Formato Título o Mayúsculas para mantener orden en la BD
+      const formatTexto = (txt) => txt ? txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase() : '';
+      
       const voluntarioConId = {
           ...dataParaGuardar,
           id: newId,
+          // Forzamos formato estándar
+          nombres: dataParaGuardar.nombres.split(' ').map(formatTexto).join(' '),
+          apellidoPaterno: formatTexto(dataParaGuardar.apellidoPaterno),
+          apellidoMaterno: formatTexto(dataParaGuardar.apellidoMaterno),
+          email: dataParaGuardar.email.toLowerCase(), // Email siempre minúscula
           tipoVoluntariado: dataParaGuardar.tipoVoluntariado || 'Campaña',
           estado: 'Activo',
-          fechaRegistro: hoy // Guardamos la fecha real de registro
+          fechaRegistro: hoy
       };
 
       const nuevaLista = [...voluntarios, voluntarioConId];
       setVoluntarios(nuevaLista);
       localStorage.setItem('voluntariosData', JSON.stringify(nuevaLista));
       
-      console.log('Nuevo voluntario registrado:', voluntarioConId);
       return newId; 
   };
 

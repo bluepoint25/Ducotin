@@ -1,8 +1,8 @@
-// src/components/voluntario.jsx (VERSIÓN FINAL CON IMPRESIÓN Y MODAL)
+// src/components/voluntario.jsx (VERSIÓN FINAL CON POP-UP TOAST)
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { User, Heart, Phone, Mail, MapPin, Briefcase, Calendar, Download, Save, X, Printer, Camera } from 'lucide-react'; 
+import { User, Heart, Phone, Mail, MapPin, Briefcase, Calendar, Download, Save, X, Printer, Camera, Send, CheckCircle } from 'lucide-react'; 
 
 // ===================================================
 // 1. CONSTANTES DE COLOR Y URL DEL LOGO
@@ -53,8 +53,29 @@ const dataVoluntariosSimuladaBase = [
 ];
 
 // ===================================================
-// 3. NUEVO COMPONENTE: MODAL DE IMPRESIÓN
+// 3. COMPONENTES MODALES Y NOTIFICACIONES
 // ===================================================
+
+// NUEVO: Componente Toast (Pop-up de notificación)
+const ToastNotification = ({ message, isVisible, onClose }) => {
+    useEffect(() => {
+        if (isVisible) {
+            const timer = setTimeout(() => {
+                onClose();
+            }, 3000); // Desaparece después de 3 segundos
+            return () => clearTimeout(timer);
+        }
+    }, [isVisible, onClose]);
+
+    if (!isVisible) return null;
+
+    return (
+        <div style={styles.toastContainer}>
+            <CheckCircle size={20} color="white" />
+            <span>{message}</span>
+        </div>
+    );
+};
 
 const ModalImpresion = ({ isVisible, onClose, onConfirm }) => {
     if (!isVisible) return null;
@@ -79,15 +100,55 @@ const ModalImpresion = ({ isVisible, onClose, onConfirm }) => {
     );
 };
 
+const ModalCorreo = ({ isVisible, onClose, onConfirm, defaultEmail }) => {
+    const [emailDestino, setEmailDestino] = useState(defaultEmail);
+
+    useEffect(() => {
+        setEmailDestino(defaultEmail);
+    }, [defaultEmail]);
+
+    if (!isVisible) return null;
+
+    return (
+        <div style={styles.modalOverlay}>
+            <div style={styles.modalContent}>
+                <h3 style={styles.modalTitle}>Enviar Pasaporte</h3>
+                <p style={styles.modalText}>
+                    Se enviará una copia digital del pasaporte al siguiente correo:
+                </p>
+                <input 
+                    type="email" 
+                    value={emailDestino} 
+                    onChange={(e) => setEmailDestino(e.target.value)}
+                    style={styles.modalInput}
+                    placeholder="correo@ejemplo.com"
+                />
+                <div style={styles.modalButtons}>
+                    <button onClick={onClose} style={styles.cancelButton}>
+                        Cancelar
+                    </button>
+                    <button onClick={() => onConfirm(emailDestino)} style={styles.emailButton}>
+                        <Send size={16} style={{marginRight: '5px'}}/> Enviar
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 
 // ---------------------------------------------------
-// 4. COMPONENTE PASAPORTE DIGITAL (CON MODAL Y FOTO)
+// 4. COMPONENTE PASAPORTE DIGITAL (CON MODALES Y TOAST)
 // ---------------------------------------------------
 
 function PasaporteDigital({ voluntario }) {
     
     const [fotoURL, setFotoURL] = useState(null);
-    const [isModalOpen, setIsModalOpen] = useState(false); 
+    const [isPrintModalOpen, setIsPrintModalOpen] = useState(false); 
+    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false); 
+    
+    // Estado para el Toast
+    const [toast, setToast] = useState({ show: false, message: '' });
     
     const displayHabilidades = voluntario.habilidades ? 
         (Array.isArray(voluntario.habilidades) ? voluntario.habilidades : String(voluntario.habilidades).split(',').map(s => s.trim()))
@@ -99,27 +160,49 @@ function PasaporteDigital({ voluntario }) {
             const reader = new FileReader();
             reader.onloadend = () => {
                 setFotoURL(reader.result);
-                alert("Foto de perfil subida exitosamente (Simulado).");
+                setToast({ show: true, message: 'Foto actualizada correctamente' });
             };
             reader.readAsDataURL(file);
         }
     };
     
-    // Función que dispara el diálogo de impresión del navegador
     const handlePrint = () => {
-        setIsModalOpen(false); 
-        
-        // Esto le dice al navegador que inicie el diálogo de impresión.
+        setIsPrintModalOpen(false); 
         window.print();
+    };
+
+    // Función de envío de correo con Toast
+    const handleSendEmail = (email) => {
+        setIsEmailModalOpen(false);
+        // Mostrar Toast en lugar de Alert
+        setToast({ 
+            show: true, 
+            message: `Pasaporte enviado exitosamente a ${email}` 
+        });
     };
 
     return (
         <div style={styles.pasaporteContainer} id="pasaporte-imprimible">
             
+            {/* Componente Toast */}
+            <ToastNotification 
+                isVisible={toast.show} 
+                message={toast.message} 
+                onClose={() => setToast({ ...toast, show: false })} 
+            />
+            
+            {/* Modales */}
             <ModalImpresion 
-                isVisible={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                isVisible={isPrintModalOpen}
+                onClose={() => setIsPrintModalOpen(false)}
                 onConfirm={handlePrint}
+            />
+
+            <ModalCorreo 
+                isVisible={isEmailModalOpen}
+                onClose={() => setIsEmailModalOpen(false)}
+                onConfirm={handleSendEmail}
+                defaultEmail={voluntario.email}
             />
             
             {/* ENCABEZADO CON LOGO MÁS GRANDE */}
@@ -180,13 +263,22 @@ function PasaporteDigital({ voluntario }) {
                     </ul>
                 </div>
                 
-                {/* BOTÓN IMPRIMIR/EXPORTAR PDF (Clase "no-print" para excluirlo de la impresión) */}
-                <div style={{ textAlign: 'center', marginTop: '30px' }} className="no-print">
+                {/* BOTONERA DE ACCIONES (No visible en impresión) */}
+                <div style={styles.actionButtonsContainer} className="no-print">
                     <button 
-                        onClick={() => setIsModalOpen(true)} // Abrir el modal
+                        onClick={() => setIsPrintModalOpen(true)} 
                         style={styles.printButton} 
+                        title="Imprimir Pasaporte"
                     >
-                        <Printer size={18} /> Imprimir Pasaporte (PDF)
+                        <Printer size={18} /> Imprimir
+                    </button>
+                    
+                    <button 
+                        onClick={() => setIsEmailModalOpen(true)} 
+                        style={styles.emailButtonAction} 
+                        title="Enviar por Correo"
+                    >
+                        <Mail size={18} /> Enviar al Correo
                     </button>
                 </div>
             </div> 
@@ -233,28 +325,27 @@ function FichaDetalleVoluntario({ voluntario }) {
     
     const [editData, setEditData] = useState(voluntario);
     const [isEditing, setIsEditing] = useState(false);
+    
+    // Estado para toast en edición también
+    const [toast, setToast] = useState({ show: false, message: '' });
 
     useEffect(() => {
         setEditData(voluntario);
         setIsEditing(false); 
     }, [voluntario]);
 
-    const iniciales = editData.nombres.split(' ').map(n => n[0]).join('').toUpperCase();
+    const iniciales = editData.nombres ? editData.nombres.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() : 'NN';
     
     const handleChange = (e) => {
         const { name, value } = e.target;
-        
         const finalValue = name === 'habilidades' ? value.split(',').map(s => s.trim()) : value;
-        
         setEditData(prev => ({ ...prev, [name]: finalValue }));
     };
 
     const handleSave = () => {
         console.log("✅ Datos Guardados (Simulado). Nuevo estado:", editData);
-        
-        Object.assign(voluntario, editData);
-        
-        alert(`Ficha de ${editData.nombres} actualizada y guardada.`);
+        Object.assign(voluntario, editData); 
+        setToast({ show: true, message: 'Ficha actualizada correctamente' });
         setIsEditing(false);
     };
 
@@ -270,7 +361,13 @@ function FichaDetalleVoluntario({ voluntario }) {
 
     return (
         <div style={styles.fichaContainer}>
-            
+            {/* Toast para edición */}
+            <ToastNotification 
+                isVisible={toast.show} 
+                message={toast.message} 
+                onClose={() => setToast({ ...toast, show: false })} 
+            />
+
             {/* ENCABEZADO: Nombre, ID, Estado y Botones de Acción */}
             <div style={styles.fichaHeaderRow}>
                 <div style={styles.nameAndStatus}>
@@ -300,7 +397,7 @@ function FichaDetalleVoluntario({ voluntario }) {
                 <div>
                     {!isEditing ? (
                         <button onClick={() => setIsEditing(true)} style={styles.editButtonRed}>
-                            <X size={16} /> Editar Ficha
+                            <Briefcase size={16} /> Editar Ficha
                         </button>
                     ) : (
                         <div style={{display: 'flex', gap: '10px'}}>
@@ -399,7 +496,7 @@ function FichaDetalleVoluntario({ voluntario }) {
                     </div>
                 </div>
 
-                {/* COLUMNA DERECHA: Pasaporte Digital (Rediseñado) */}
+                {/* COLUMNA DERECHA: Pasaporte Digital */}
                 <div>
                     <PasaporteDigital voluntario={editData} />
                 </div>
@@ -416,30 +513,27 @@ function FichaDetalleVoluntario({ voluntario }) {
 export default function ComponenteVoluntarios({ mockVoluntarios }) {
     const { id } = useParams();
     
-    let voluntarioData = mockVoluntarios.find(v => v.id === id); 
+    // Buscar voluntario por ID en la prop recibida, con fallback a los datos por defecto si falla
+    let voluntarioData = mockVoluntarios ? mockVoluntarios.find(v => v.id === id) : null;
 
+    if (!voluntarioData && id) {
+        // Fallback para pruebas si no viene del estado global
+        voluntarioData = dataVoluntariosSimuladaBase.find(v => v.id === id);
+    }
+
+    // Si aún no hay datos, usar el primero base por defecto (para evitar pantalla blanca en demo)
     if (!voluntarioData) {
-        voluntarioData = mockVoluntarios.find(v => v.id === 'V001') || dataVoluntariosSimuladaBase[0]; 
-    } 
+        voluntarioData = dataVoluntariosSimuladaBase[0];
+    }
 
+    // Fusionar con datos base para asegurar que todos los campos existan
     const voluntarioFinal = {
         ...dataVoluntariosSimuladaBase[0], 
         ...voluntarioData,
-        id: voluntarioData.id,
+        // Normalizar nombres de campos si vienen diferentes del backend/Excel
         nombres: voluntarioData.nombre || voluntarioData.nombres, 
-        rut: voluntarioData.rut,
-        email: voluntarioData.email,
-        region: voluntarioData.region,
-        edad: voluntarioData.edad,
         areaAsignada: voluntarioData.habilidad || 'General',
-        antiguedad: voluntarioData.antiguedad || 0,
-        estado: voluntarioData.estado || 'Pendiente',
-        tipoVoluntario: voluntarioData.tipoVoluntario || dataVoluntariosSimuladaBase[0].tipoVoluntario
     };
-
-    if (!voluntarioFinal || !voluntarioFinal.nombres) {
-         return <div style={{textAlign: 'center', marginTop: '100px'}}>Cargando o Voluntario no encontrado...</div>;
-    }
     
     return (
         <div id="caja-voluntarios-crm" style={{backgroundColor: COLORS.BG_COLOR, minHeight: '100vh', padding: '1px 0'}}>
@@ -452,10 +546,29 @@ export default function ComponenteVoluntarios({ mockVoluntarios }) {
 
 
 // ===================================================
-// 8. ESTILOS INLINE (ACTUALIZADOS PARA EL PASAPORTE)
+// 8. ESTILOS INLINE
 // ===================================================
 
 const styles = {
+    // --- NUEVO: Estilo para el TOAST ---
+    toastContainer: {
+        position: 'fixed',
+        top: '20px',
+        right: '20px',
+        backgroundColor: '#166534', // Verde oscuro éxito
+        color: 'white',
+        padding: '16px 24px',
+        borderRadius: '8px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        zIndex: 11000, // Por encima de todo
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        fontSize: '1rem',
+        fontWeight: '600',
+        animation: 'slideIn 0.3s ease-out',
+    },
+
     // --- Layout General ---
     fichaContainer: {
         maxWidth: '1200px',
@@ -465,7 +578,7 @@ const styles = {
     },
     fichaGridLayout: {
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', 
         gap: '30px',
     },
     
@@ -544,7 +657,7 @@ const styles = {
         color: COLORS.SUCCESS_TEXT, 
     },
     
-    // --- ESTILOS DE BOTONES DE ACCIÓN ---
+    // --- ESTILOS DE BOTONES ---
     editButtonRed: {
         padding: '10px 20px',
         borderRadius: '8px',
@@ -581,6 +694,18 @@ const styles = {
         backgroundColor: COLORS.TEXT_LIGHT, 
         color: COLORS.WHITE,
     },
+    emailButton: {
+        padding: '10px 15px',
+        borderRadius: '8px',
+        fontWeight: 600,
+        cursor: 'pointer',
+        border: 'none',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        backgroundColor: COLORS.TELECTON_RED, 
+        color: COLORS.WHITE,
+    },
 
     // --- Modal Styles ---
     modalOverlay: {
@@ -600,7 +725,7 @@ const styles = {
         padding: '30px',
         borderRadius: '10px',
         boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
-        width: '350px',
+        width: '400px',
         textAlign: 'center',
     },
     modalTitle: {
@@ -611,11 +736,20 @@ const styles = {
     modalText: {
         fontSize: '1em',
         color: COLORS.TEXT_MAIN,
-        marginBottom: '25px',
+        marginBottom: '20px',
+    },
+    modalInput: {
+        width: '100%',
+        padding: '10px',
+        marginBottom: '20px',
+        border: `1px solid ${COLORS.CARD_BORDER}`,
+        borderRadius: '5px',
+        fontSize: '1rem',
     },
     modalButtons: {
         display: 'flex',
-        justifyContent: 'space-around',
+        justifyContent: 'center',
+        gap: '15px',
     },
 
     // --- Campos y Edición ---
@@ -685,7 +819,7 @@ const styles = {
         marginBottom: '8px',
     },
 
-    // --- PASAPORTE (ESTILOS ACTUALIZADOS) ---
+    // --- PASAPORTE ---
     pasaporteContainer: {
         backgroundColor: COLORS.WHITE,
         borderRadius: '15px', 
@@ -800,12 +934,19 @@ const styles = {
         color: COLORS.PASSPORT_TEXT_DARK,
         margin: '0',
     },
-    // BOTÓN IMPRIMIR/PDF
+    
+    // BOTONERA
+    actionButtonsContainer: {
+        display: 'flex',
+        gap: '10px',
+        marginTop: '25px',
+        justifyContent: 'center'
+    },
     printButton: {
         backgroundColor: COLORS.ACTION_BLUE, 
         color: COLORS.WHITE,
         border: 'none',
-        padding: '10px 20px',
+        padding: '10px 15px',
         borderRadius: '6px',
         fontWeight: '600',
         cursor: 'pointer',
@@ -813,9 +954,24 @@ const styles = {
         display: 'inline-flex',
         alignItems: 'center',
         gap: '8px',
-        transition: 'background-color 0.2s',
-        boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-        width: '100%',
+        flex: 1,
         justifyContent: 'center',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+    },
+    emailButtonAction: {
+        backgroundColor: COLORS.TELECTON_RED, 
+        color: COLORS.WHITE,
+        border: 'none',
+        padding: '10px 15px',
+        borderRadius: '6px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        fontSize: '0.9rem',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '8px',
+        flex: 1,
+        justifyContent: 'center',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
     }
 };

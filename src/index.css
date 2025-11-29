@@ -1086,3 +1086,47 @@ body {
 button {
   cursor: pointer;
 }
+
+/* ... (Todo lo que ya tenías arriba) ... */
+
+/* --- NUEVOS ESTILOS RESPONSIVOS PARA DASHBOARD (BO-044) --- */
+
+.dashboard-grid-row {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 0.9fr; /* Diseño PC */
+  gap: 25px;
+  align-items: stretch;
+  margin-bottom: 25px;
+}
+
+.dashboard-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  height: 100%;
+}
+
+/* REGLA PARA MÓVILES (Pantallas menores a 1024px) */
+@media (max-width: 1024px) {
+  .dashboard-grid-row {
+    grid-template-columns: 1fr; /* Pasa a 1 sola columna */
+    gap: 30px;
+  }
+
+  /* Ajustar altura en móvil para que no sea tan larga */
+  .dashboard-card-min-height {
+    min-height: 400px !important;
+  }
+}
+
+/* Ajustes para móviles pequeños */
+@media (max-width: 600px) {
+  .main-container {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  
+  .dashboard-stats-grid {
+    grid-template-columns: 1fr; /* Contadores uno debajo del otro */
+  }
+}
