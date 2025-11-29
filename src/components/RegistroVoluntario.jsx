@@ -1,7 +1,32 @@
 import React, { useState } from 'react';
-import { User, CheckCircle, Heart, ShieldAlert, AlertCircle, XCircle } from 'lucide-react';
+// Importación de lucide-react ELIMINADA
 
-const RegistroVoluntario = ({ onGuardar, baseDeDatos }) => { // Recibimos baseDeDatos
+// Definición de Emojis de Reemplazo
+const ICON_USER = '👤'; 
+const ICON_SUCCESS = '✔️'; 
+const ICON_ERROR = '❌';
+const ICON_ALERT = '⚠️';
+const ICON_HEART = '❤️';
+const ICON_SECURITY = '🚨';
+
+// Pequeño estilo inline para simular el tamaño y el espaciado que tenían los iconos
+const iconStyle = { 
+    display: 'inline-flex', 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    fontSize: '1em', // Tamaño estándar para iconos pequeños
+    lineHeight: 1,
+};
+
+// Pequeño estilo inline para el icono de título
+const titleIconStyle = { 
+    display: 'inline-block',
+    marginRight: '10px',
+    fontSize: '1.4em', // Más grande para el título
+    color: '#2563EB',
+};
+
+const RegistroVoluntario = ({ onGuardar, baseDeDatos }) => {
   
   // Estado del Formulario
   const [nuevoVoluntario, setNuevoVoluntario] = useState({
@@ -47,7 +72,7 @@ const RegistroVoluntario = ({ onGuardar, baseDeDatos }) => { // Recibimos baseDe
     }
   };
 
-  // --- LÓGICA DE VALIDACIÓN ---
+  // --- LÓGICA DE VALIDACIÓN (sin cambios) ---
   const validarFormulario = () => {
     const nuevosErrores = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -71,7 +96,6 @@ const RegistroVoluntario = ({ onGuardar, baseDeDatos }) => { // Recibimos baseDe
     if (!nuevoVoluntario.contactoEmergencia.trim()) nuevosErrores.contactoEmergencia = "Contacto de emergencia obligatorio.";
 
     // 2. Validación de DUPLICADOS (Base de Datos)
-    // Solo validamos duplicados si el formato del RUT/Email es correcto primero
     
     if (!nuevosErrores.rut && baseDeDatos) {
         const rutExiste = baseDeDatos.some(vol => vol.rut === nuevoVoluntario.rut);
@@ -81,7 +105,6 @@ const RegistroVoluntario = ({ onGuardar, baseDeDatos }) => { // Recibimos baseDe
     }
 
     if (!nuevosErrores.email && baseDeDatos) {
-        // Comparamos emails en minúsculas para evitar errores (ej: GMAIL.COM vs gmail.com)
         const emailExiste = baseDeDatos.some(vol => vol.email && vol.email.toLowerCase() === nuevoVoluntario.email.toLowerCase());
         if (emailExiste) {
             nuevosErrores.email = "Este correo electrónico ya fue utilizado.";
@@ -98,7 +121,6 @@ const RegistroVoluntario = ({ onGuardar, baseDeDatos }) => { // Recibimos baseDe
     if (Object.keys(erroresEncontrados).length > 0) {
       setErrores(erroresEncontrados);
       
-      // Mensaje personalizado dependiendo del tipo de error
       let mensajeError = 'Por favor revisa los campos marcados en rojo.';
       if (erroresEncontrados.rut && erroresEncontrados.rut.includes('ya está registrado')) {
           mensajeError = 'El usuario ya existe. Verifica el RUT ingresado.';
@@ -135,8 +157,8 @@ const RegistroVoluntario = ({ onGuardar, baseDeDatos }) => { // Recibimos baseDe
         {modal.show && (
           <div className="modal-overlay">
             <div className="modal-content" style={{ borderColor: modal.type === 'success' ? '#15803D' : '#DC2626' }}>
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>
-                {modal.type === 'success' ? <CheckCircle size={48} color="#15803D" /> : <XCircle size={48} color="#DC2626" />}
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px', fontSize: '48px' }}>
+                {modal.type === 'success' ? <span style={{color: '#15803D'}}>{ICON_SUCCESS}</span> : <span style={{color: '#DC2626'}}>{ICON_ERROR}</span>}
               </div>
               <h3 className="modal-title">{modal.title}</h3>
               <p className="modal-text">{modal.message}</p>
@@ -154,7 +176,7 @@ const RegistroVoluntario = ({ onGuardar, baseDeDatos }) => { // Recibimos baseDe
         <div className="search-box" style={{ borderLeft: '5px solid #2563EB' }}>
             <div className="register-header">
                 <h2 className="register-title">
-                    <User className="icon-blue" size={28} color="#2563EB"/>
+                    <span style={titleIconStyle}>{ICON_USER}</span>
                     Ficha de Postulación Voluntariado
                 </h2>
                 <p className="register-subtitle">Complete la ficha técnica para asignación de roles y logística.</p>
@@ -167,20 +189,20 @@ const RegistroVoluntario = ({ onGuardar, baseDeDatos }) => { // Recibimos baseDe
                         <div className="input-group full-width">
                             <label className="input-label">Nombre Completo</label>
                             <input name="nombre" value={nuevoVoluntario.nombre} onChange={handleInputChange} type="text" className={`input-field ${errores.nombre ? 'input-error' : ''}`} placeholder="Ej: Gabriela Soto Pérez" />
-                            {errores.nombre && <span className="error-msg"><AlertCircle size={12}/> {errores.nombre}</span>}
+                            {errores.nombre && <span className="error-msg"><span style={iconStyle}>{ICON_ALERT}</span> {errores.nombre}</span>}
                         </div>
                         
                         <div className="input-group">
                             <label className="input-label">RUT</label>
                             <input name="rut" value={nuevoVoluntario.rut} onChange={handleInputChange} type="text" className={`input-field ${errores.rut ? 'input-error' : ''}`} placeholder="Ej: 12.345.678-9" maxLength="12"/>
-                            {errores.rut && <span className="error-msg"><AlertCircle size={12}/> {errores.rut}</span>}
+                            {errores.rut && <span className="error-msg"><span style={iconStyle}>{ICON_ALERT}</span> {errores.rut}</span>}
                         </div>
                         
                         <div className="input-group" style={{ flexDirection: 'row', gap: '15px' }}>
                             <div style={{ flex: 1 }}>
                                 <label className="input-label">Edad</label>
                                 <input name="edad" value={nuevoVoluntario.edad} onChange={handleInputChange} type="number" className={`input-field ${errores.edad ? 'input-error' : ''}`} style={{width: '100%'}} />
-                                {errores.edad && <span className="error-msg"><AlertCircle size={12}/> {errores.edad}</span>}
+                                {errores.edad && <span className="error-msg"><span style={iconStyle}>{ICON_ALERT}</span> {errores.edad}</span>}
                             </div>
                             <div style={{ flex: 1 }}>
                                 <label className="input-label">Talla Polera</label>
@@ -216,7 +238,7 @@ const RegistroVoluntario = ({ onGuardar, baseDeDatos }) => { // Recibimos baseDe
                                 <option value="Aysén">Aysén del Gral. Carlos Ibáñez del Campo</option>
                                 <option value="Magallanes">Magallanes y de la Antártica Chilena</option>
                             </select>
-                            {errores.region && <span className="error-msg"><AlertCircle size={12}/> {errores.region}</span>}
+                            {errores.region && <span className="error-msg"><span style={iconStyle}>{ICON_ALERT}</span> {errores.region}</span>}
                         </div>
                     </div>
                 </div>
@@ -227,19 +249,19 @@ const RegistroVoluntario = ({ onGuardar, baseDeDatos }) => { // Recibimos baseDe
                         <div className="input-group">
                             <label className="input-label">Correo Electrónico</label>
                             <input name="email" value={nuevoVoluntario.email} onChange={handleInputChange} type="email" className={`input-field ${errores.email ? 'input-error' : ''}`} placeholder="nombre@correo.com" />
-                            {errores.email && <span className="error-msg"><AlertCircle size={12}/> {errores.email}</span>}
+                            {errores.email && <span className="error-msg"><span style={iconStyle}>{ICON_ALERT}</span> {errores.email}</span>}
                         </div>
                         <div className="input-group">
                             <label className="input-label">Teléfono Móvil</label>
                             <input name="telefono" value={nuevoVoluntario.telefono} onChange={handleInputChange} type="tel" className={`input-field ${errores.telefono ? 'input-error' : ''}`} placeholder="+56 9 1234 5678" />
-                            {errores.telefono && <span className="error-msg"><AlertCircle size={12}/> {errores.telefono}</span>}
+                            {errores.telefono && <span className="error-msg"><span style={iconStyle}>{ICON_ALERT}</span> {errores.telefono}</span>}
                         </div>
                         <div className="input-group full-width" style={{ backgroundColor: '#FFF7ED', padding: '10px', borderRadius: '6px', border: '1px solid #FFEDD5' }}>
                             <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                <ShieldAlert size={16} color="#C2410C"/> Contacto de Emergencia
+                                <span style={{fontSize: '1em', color: '#C2410C', marginRight: '5px'}}>{ICON_SECURITY}</span> Contacto de Emergencia
                             </label>
                             <input name="contactoEmergencia" value={nuevoVoluntario.contactoEmergencia} onChange={handleInputChange} type="text" className={`input-field ${errores.contactoEmergencia ? 'input-error' : ''}`} placeholder="Ej: Mamá - +56 9 8765 4321" />
-                            {errores.contactoEmergencia && <span className="error-msg"><AlertCircle size={12}/> {errores.contactoEmergencia}</span>}
+                            {errores.contactoEmergencia && <span className="error-msg"><span style={iconStyle}>{ICON_ALERT}</span> {errores.contactoEmergencia}</span>}
                         </div>
                     </div>
                 </div>
@@ -289,7 +311,7 @@ const RegistroVoluntario = ({ onGuardar, baseDeDatos }) => { // Recibimos baseDe
                     <label className="special-label">
                         <input type="checkbox" name="esExPaciente" checked={nuevoVoluntario.esExPaciente} onChange={handleInputChange} className="checkbox-input" />
                         <div><span style={{display: 'block'}}>¿Fue paciente de Teletón anteriormente?</span></div>
-                        {nuevoVoluntario.esExPaciente && <Heart size={20} fill="#DC2626" color="#DC2626" />}
+                        {nuevoVoluntario.esExPaciente && <span style={{fontSize: '20px', color: '#DC2626'}}>{ICON_HEART}</span>}
                     </label>
                     {nuevoVoluntario.esExPaciente && (
                         <div className="special-message">Tu experiencia es inspiración. Tu ficha tendrá prioridad.</div>
@@ -297,7 +319,7 @@ const RegistroVoluntario = ({ onGuardar, baseDeDatos }) => { // Recibimos baseDe
                 </div>
 
                 <button type="submit" className="btn-ver-ficha btn-save">
-                    <CheckCircle size={20} /> Finalizar Postulación
+                    <span style={{marginRight: '8px'}}>{ICON_SUCCESS}</span> Finalizar Postulación
                 </button>
             </form>
         </div>

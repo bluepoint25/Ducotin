@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, User, MapPin, FileText, Star, Activity, Package, Palette, Heart } from 'lucide-react';
+// Importación de lucide-react ELIMINADA
 
 const BuscadorVoluntarios = ({ datos }) => {
   const [busqueda, setBusqueda] = useState("");
@@ -15,10 +15,11 @@ const BuscadorVoluntarios = ({ datos }) => {
 
   const getIconoHabilidad = (habilidad) => {
     switch(habilidad) {
-      case 'Salud': return <Activity size={24} color="#2563EB" />;
-      case 'Logística': return <Package size={24} color="#EA580C" />;
-      case 'Teatro': case 'Arte': return <Palette size={24} color="#9333EA" />;
-      default: return <User size={24} color="#4B5563" />;
+      // Iconos de habilidad reemplazados por emojis con estilo de 24px
+      case 'Salud': return <span style={{fontSize: '24px'}} role="img" aria-label="health">⚕️</span>;
+      case 'Logística': return <span style={{fontSize: '24px'}} role="img" aria-label="package">📦</span>;
+      case 'Teatro': case 'Arte': return <span style={{fontSize: '24px'}} role="img" aria-label="palette">🎨</span>;
+      default: return <span style={{fontSize: '24px'}} role="img" aria-label="user">👤</span>;
     }
   };
 
@@ -26,7 +27,8 @@ const BuscadorVoluntarios = ({ datos }) => {
     <>
       <div className="search-box">
         <h2 className="search-title">
-            <Search className="icon-red" size={20} color="#DC2626"/>
+            {/* Icono Search reemplazado por emoji */}
+            <span className="icon-red" style={{fontSize: '20px', color: '#DC2626', marginRight: '8px'}} role="img" aria-label="search">🔍</span>
             Buscador Inteligente
         </h2>
         
@@ -62,24 +64,27 @@ const BuscadorVoluntarios = ({ datos }) => {
                     {vol.nombre}
                     {vol.antiguedad >= 5 && (
                         <span className="badge-veterano">
-                        <Star size={10} fill="#B45309" stroke="none" /> Veterano
+                        {/* Icono Star reemplazado por emoji */}
+                        <span role="img" aria-label="star" style={{marginRight: '3px'}}>⭐</span> Veterano
                         </span>
                     )}
                     {vol.esExPaciente && (
                         <span className="badge-paciente" style={{ marginLeft: '5px', backgroundColor: '#E0E7FF', color: '#4338CA', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', border: '1px solid #C7D2FE' }}>
-                        <Heart size={10} fill="#4338CA" stroke="none" style={{display: 'inline', marginRight: '3px'}}/> Corazón Teletón
+                        {/* Icono Heart reemplazado por emoji */}
+                        <span role="img" aria-label="heart" style={{display: 'inline', marginRight: '3px'}}>❤️</span> Corazón Teletón
                         </span>
                     )}
                     </h4>
-                    <p className="info-detail"><User size={14} /> {vol.rut} | {vol.edad} años</p>
-                    <p className="info-detail"><MapPin size={14} /> {vol.region}</p>
+                    {/* Iconos User y MapPin reemplazados por emojis */}
+                    <p className="info-detail"><span role="img" aria-label="user" style={{marginRight: '5px'}}>👤</span> {vol.rut} | {vol.edad} años</p>
+                    <p className="info-detail"><span role="img" aria-label="map" style={{marginRight: '5px'}}>📍</span> {vol.region}</p>
                 </div>
                 </div>
                 <div className="card-right">
                     <div className="info-detail"><strong>Habilidad:</strong> {vol.habilidad}</div>
                     <span className={`status-badge ${vol.estado === 'Activo' ? 'status-active' : 'status-pending'}`}>{vol.estado}</span>
                     <div className="actions">
-                        <button className="btn-ver-ficha"><FileText size={16} /> Ver Ficha</button>
+                        <button className="btn-ver-ficha">📜 Ver Ficha</button> {/* Icono FileText reemplazado por emoji */}
                     </div>
                 </div>
             </div>
