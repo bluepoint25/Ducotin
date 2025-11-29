@@ -1,6 +1,6 @@
 // src/components/Login.jsx
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom'; // Importamos Link
 
 // URL del Logo de la Botathon
 const LOGO_URL = 'https://evento.teleton.cl/assets/logo-BIA0jwll.webp';
@@ -14,7 +14,6 @@ const PRIMARY_BLUE_DARK = '#263259';
 const TELETON_WHITE = '#FFFFFF';      
 const TELETON_DARK_TEXT = '#333333';  
 const TELETON_LIGHT_GREY = '#F8F8F8'; 
-// Fondo para el formulario: Blanco con opacidad para que se vea la imagen
 const TELETON_DARK_BG = 'rgba(255, 255, 255, 0.95)'; 
 
 const Login = ({ onLoginSuccess }) => {
@@ -22,36 +21,30 @@ const Login = ({ onLoginSuccess }) => {
 
     const handleLogin = (e) => {
         e.preventDefault();
-        
-        // Simulación de éxito
         if (onLoginSuccess) {
             onLoginSuccess();
-            // Redirige al Dashboard
             navigate('/dashboard'); 
         }
     };
 
-    // --- Estilos Inline ---
     const styles = {
         container: {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             minHeight: '100vh',
-            // --- ESTILOS PARA IMAGEN DE FONDO ---
             backgroundImage: `url(${LOGIN_BACKGROUND_IMAGE})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
-            // ------------------------------------
             fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
         },
         loginBox: {
-            backgroundColor: TELETON_DARK_BG, // Blanco ligeramente transparente
+            backgroundColor: TELETON_DARK_BG,
             padding: '40px',
             borderRadius: '10px',
-            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.3)', // Sombra más fuerte
-            width: '380px', // Ligeramente más ancho
+            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.3)',
+            width: '380px',
             textAlign: 'center',
         },
         logoImage: {
@@ -93,6 +86,8 @@ const Login = ({ onLoginSuccess }) => {
             marginTop: '15px',
             display: 'block',
             textDecoration: 'none',
+            fontWeight: '500',
+            cursor: 'pointer'
         }
     };
 
@@ -100,7 +95,6 @@ const Login = ({ onLoginSuccess }) => {
         <div style={styles.container}>
             <div style={styles.loginBox}>
                 
-                {/* Logo de Teletón */}
                 <img src={LOGO_URL} alt="Logo Teletón" style={styles.logoImage} />
                 
                 <h2 style={styles.title}>Acceso CRM Voluntarios</h2>
@@ -124,7 +118,10 @@ const Login = ({ onLoginSuccess }) => {
                     </button>
                 </form>
 
-                <a href="#" style={styles.link}>¿Olvidaste tu contraseña?</a>
+                {/* Enlace funcional usando Link de React Router */}
+                <Link to="/recuperar" style={styles.link}>
+                    ¿Olvidaste tu contraseña?
+                </Link>
             </div>
         </div>
     );
