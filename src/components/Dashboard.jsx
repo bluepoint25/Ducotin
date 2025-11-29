@@ -79,12 +79,7 @@ const Dashboard = () => {
             backgroundColor: TELETON_WHITE,
             minHeight: 'calc(100vh - 85px)', // Asegura espacio para el header
         },
-        topContainer: {
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr', 
-            gap: '20px',
-            marginBottom: '20px',
-        },
+
         metricTotalCard: {
             backgroundColor: PRIMARY_BLUE_DARK,
             color: TELETON_WHITE,
@@ -208,7 +203,22 @@ const Dashboard = () => {
                     </div>
                 </section>
             </main>
+            <section className="dashboard-top-grid">
+                <div style={styles.metricTotalCard}>
+                    <div>
+                        <p style={styles.metricTitle}>Total Historical Volunteers</p>
+                        <h2 style={styles.metricValue}>{totalVoluntarios}</h2>
+                    </div>
+                </div>
 
+                {/* 2. Distribución Geográfica (Mapa de Calor) (RF-05) */}
+                <div style={styles.mapCard}>
+                    <h3 style={styles.mapTitle}>Geographic Distribution</h3>
+                    <div style={{ height: '300px', backgroundColor: TELETON_LIGHT_GREY, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '5px' }}>
+                        <span>Aquí se integrará el Mapa de Calor de Chile (RF-05)</span>
+                    </div>
+                </div>
+            </section>
             {/* LOGO FIJO INFERIOR IZQUIERDO (NUEVO) */}
             <footer style={styles.fixedFooterLogo}>
                 <img src={LOGO_URL} alt="Logo Fijo" style={styles.fixedLogoImage} />

@@ -109,6 +109,11 @@ const NavBar = ({ isLoggedIn, onLogout }) => {
                         Buscador Avanzado
                     </Link>
                     
+                    {/* NUEVO: Enlace a la Ficha de Voluntario de ejemplo (ID simulado V001) */}
+                    <Link to="/voluntario/V001" className="nav-btn-3d"> 
+                        Ficha Voluntario
+                    </Link>
+                    
                     {/* Botón Salir (Añadimos clase extra para diferenciar color si quieres) */}
                     <button onClick={handleLogout} className="nav-btn-3d btn-logout" style={{marginLeft: '15px'}}>
                         Salir
