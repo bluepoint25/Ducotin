@@ -1,99 +1,216 @@
 import React, { useState } from 'react';
-// Importación de lucide-react ELIMINADA
+import { useNavigate } from 'react-router-dom'; // 1. Importar hook de navegación
+import { Search, MapPin, Mail, Phone, Calendar, Clock, Briefcase, Filter, Plus, User } from 'lucide-react';
 
 const BuscadorVoluntarios = ({ datos }) => {
+  const navigate = useNavigate(); // 2. Inicializar el hook
   const [busqueda, setBusqueda] = useState("");
-  const [filtroTipo, setFiltroTipo] = useState("nombre");
+  const [filtroRegion, setFiltroRegion] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("");
+  const [filtroHabilidad, setFiltroHabilidad] = useState("");
 
-  // Lógica de Filtrado
+  // 1. Cálculo de Métricas (Tiempo Real)
+  const metricas = {
+    total: datos.length,
+    activos: datos.filter(d => d.estado === 'Activo').length,
+    nuevos: datos.filter(d => d.antiguedad < 1).length,
+    inactivos: datos.filter(d => d.estado !== 'Activo').length
+  };
+
+  // 2. Filtrado (Actualizado para incluir RUT)
   const voluntariosFiltrados = datos.filter((vol) => {
     const termino = busqueda.toLowerCase();
-    return filtroTipo === "nombre" 
-      ? vol.nombre.toLowerCase().includes(termino)
-      : vol.rut.includes(termino);
+    
+    // Ahora busca en Nombre, RUT o Email
+    const textoMatch = 
+      vol.nombre.toLowerCase().includes(termino) || 
+      vol.rut.toLowerCase().includes(termino) || 
+      vol.email?.toLowerCase().includes(termino);
+
+    const regionMatch = filtroRegion ? vol.region === filtroRegion : true;
+    const estadoMatch = filtroEstado ? vol.estado === filtroEstado : true;
+    const habilidadMatch = filtroHabilidad ? vol.habilidad === filtroHabilidad : true;
+
+    return textoMatch && regionMatch && estadoMatch && habilidadMatch;
   });
 
-  const getIconoHabilidad = (habilidad) => {
-    switch(habilidad) {
-      // Iconos de habilidad reemplazados por emojis con estilo de 24px
-      case 'Salud': return <span style={{fontSize: '24px'}} role="img" aria-label="health">⚕️</span>;
-      case 'Logística': return <span style={{fontSize: '24px'}} role="img" aria-label="package">📦</span>;
-      case 'Teatro': case 'Arte': return <span style={{fontSize: '24px'}} role="img" aria-label="palette">🎨</span>;
-      default: return <span style={{fontSize: '24px'}} role="img" aria-label="user">👤</span>;
-    }
+  // Helper: Iniciales para Avatar
+  const getIniciales = (nombre) => {
+    if (!nombre) return "VT";
+    return nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  };
+
+  // Helper: Color de Badge según Área
+  const getAreaColorClass = (area) => {
+    if (!area) return 'badge-gray';
+    const a = area.toLowerCase();
+    if (a.includes('salud') || a.includes('clínica')) return 'badge-green';
+    if (a.includes('logística') || a.includes('operaciones')) return 'badge-orange';
+    if (a.includes('recaudación') || a.includes('caja')) return 'badge-purple';
+    if (a.includes('arte') || a.includes('recreación')) return 'badge-pink';
+    return 'badge-blue';
   };
 
   return (
-    <>
-      <div className="search-box">
-        <h2 className="search-title">
-            {/* Icono Search reemplazado por emoji */}
-            <span className="icon-red" style={{fontSize: '20px', color: '#DC2626', marginRight: '8px'}} role="img" aria-label="search">🔍</span>
-            Buscador Inteligente
-        </h2>
-        
-        <div className="search-inputs">
-            <select 
-            value={filtroTipo}
-            onChange={(e) => setFiltroTipo(e.target.value)}
-            className="input-field select-type"
-            >
-            <option value="nombre">Buscar por Nombre</option>
-            <option value="rut">Buscar por RUT</option>
-            </select>
+    <div className="dashboard-wrapper fade-in">
+      
+      {/* 1. HEADER + BOTÓN ACCIÓN */}
+      <div className="dashboard-top-bar">
+        <div>
+            <h2 className="dashboard-heading">Sistema de Voluntarios Teletón</h2>
+            <p className="dashboard-subheading">Gestión y seguimiento de talento humano</p>
+        </div>
+        {/* Botón con redirección */}
+        <button 
+            className="btn-action-primary"
+            onClick={() => navigate('/registro')} 
+        >
+            <Plus size={18} /> Nuevo Voluntario
+        </button>
+      </div>
 
-            <input
-            type="text"
-            placeholder={filtroTipo === "nombre" ? "Ingrese nombre..." : "Ingrese RUT..."}
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            className="input-field input-text"
-            />
+      {/* 2. TARJETAS DE MÉTRICAS */}
+      <div className="stats-grid">
+        <div className="stat-card">
+            <span className="stat-label">Total de Voluntarios</span>
+            <span className="stat-number">{metricas.total}</span>
+            <div className="stat-indicator blue"></div>
+        </div>
+        <div className="stat-card">
+            <span className="stat-label">Activos</span>
+            <span className="stat-number text-success">{metricas.activos}</span>
+            <div className="stat-indicator green"></div>
+        </div>
+        <div className="stat-card">
+            <span className="stat-label">Nuevos (mes)</span>
+            <span className="stat-number text-primary">{metricas.nuevos}</span>
+            <div className="stat-indicator light-blue"></div>
+        </div>
+        <div className="stat-card">
+            <span className="stat-label">Inactivos / Pendientes</span>
+            <span className="stat-number text-danger">{metricas.inactivos}</span>
+            <div className="stat-indicator red"></div>
         </div>
       </div>
 
-      <div className="results-list">
-        <h3 className="results-count">Resultados encontrados: {voluntariosFiltrados.length}</h3>
+      {/* 3. BARRA DE FILTROS */}
+      <div className="filters-container">
+        <div className="filter-title-row">
+            <Filter size={16} className="text-muted" />
+            <span>Filtros de Búsqueda</span>
+        </div>
+        
+        <div className="filters-controls">
+            <div className="search-field-wrapper">
+                <Search className="search-icon-input" size={18} />
+                <input 
+                    type="text" 
+                    placeholder="Buscar por nombre, RUT o email..." 
+                    value={busqueda}
+                    onChange={(e) => setBusqueda(e.target.value)}
+                    className="search-input-modern"
+                />
+            </div>
+            
+            <select className="filter-select-modern" value={filtroHabilidad} onChange={(e) => setFiltroHabilidad(e.target.value)}>
+                <option value="">Todas las áreas</option>
+                <option value="Salud">Salud</option>
+                <option value="Logística">Logística</option>
+                <option value="Recreación">Recreación</option>
+                <option value="Administrativo">Administrativo</option>
+            </select>
+
+            <select className="filter-select-modern" value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}>
+                <option value="">Todos los estados</option>
+                <option value="Activo">Activo</option>
+                <option value="Pendiente">Pendiente</option>
+            </select>
+
+            <select className="filter-select-modern" value={filtroRegion} onChange={(e) => setFiltroRegion(e.target.value)}>
+                <option value="">Todas las regiones</option>
+                <option value="Metropolitana">Metropolitana</option>
+                <option value="Valparaíso">Valparaíso</option>
+                <option value="Biobío">Biobío</option>
+            </select>
+        </div>
+      </div>
+
+      {/* 4. GRID DE TARJETAS */}
+      <div className="cards-grid-layout">
         {voluntariosFiltrados.length > 0 ? (
             voluntariosFiltrados.map((vol) => (
-            <div key={vol.id} className="volunteer-card">
-                <div className="card-left">
-                <div className="icon-wrapper">{getIconoHabilidad(vol.habilidad)}</div>
-                <div>
-                    <h4 className="info-name">
-                    {vol.nombre}
-                    {vol.antiguedad >= 5 && (
-                        <span className="badge-veterano">
-                        {/* Icono Star reemplazado por emoji */}
-                        <span role="img" aria-label="star" style={{marginRight: '3px'}}>⭐</span> Veterano
-                        </span>
-                    )}
-                    {vol.esExPaciente && (
-                        <span className="badge-paciente" style={{ marginLeft: '5px', backgroundColor: '#E0E7FF', color: '#4338CA', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', border: '1px solid #C7D2FE' }}>
-                        {/* Icono Heart reemplazado por emoji */}
-                        <span role="img" aria-label="heart" style={{display: 'inline', marginRight: '3px'}}>❤️</span> Corazón Teletón
-                        </span>
-                    )}
-                    </h4>
-                    {/* Iconos User y MapPin reemplazados por emojis */}
-                    <p className="info-detail"><span role="img" aria-label="user" style={{marginRight: '5px'}}>👤</span> {vol.rut} | {vol.edad} años</p>
-                    <p className="info-detail"><span role="img" aria-label="map" style={{marginRight: '5px'}}>📍</span> {vol.region}</p>
+            <div key={vol.id} className="profile-card">
+                
+                {/* Cabecera Tarjeta */}
+                <div className="card-header-row">
+                    <div className="profile-info">
+                        <div className="profile-avatar">
+                            {getIniciales(vol.nombre)}
+                        </div>
+                        <div className="profile-details">
+                            <h4 className="profile-name">{vol.nombre}</h4>
+                            <span className="profile-age">{vol.edad} años</span>
+                        </div>
+                    </div>
+                    <span className={`status-pill ${vol.estado === 'Activo' ? 'status-active' : 'status-inactive'}`}>
+                        {vol.estado}
+                    </span>
                 </div>
-                </div>
-                <div className="card-right">
-                    <div className="info-detail"><strong>Habilidad:</strong> {vol.habilidad}</div>
-                    <span className={`status-badge ${vol.estado === 'Activo' ? 'status-active' : 'status-pending'}`}>{vol.estado}</span>
-                    <div className="actions">
-                        <button className="btn-ver-ficha">📜 Ver Ficha</button> {/* Icono FileText reemplazado por emoji */}
+
+                {/* Info Contacto */}
+                <div className="card-body-info">
+                    <div className="info-line">
+                        <Mail size={14} className="icon-muted"/>
+                        <span>{vol.email || 'correo@teleton.cl'}</span>
+                    </div>
+                    <div className="info-line">
+                        <Phone size={14} className="icon-muted"/>
+                        <span>{vol.rut}</span> {/* Muestra RUT o Teléfono según prefieras */}
+                    </div>
+                    <div className="info-line">
+                        <MapPin size={14} className="icon-muted"/>
+                        <span>{vol.region}, {vol.comuna || 'Chile'}</span>
                     </div>
                 </div>
+
+                {/* Área y Disponibilidad */}
+                <div className="card-tags-area">
+                    <div className="tag-row">
+                        <span className="tag-label"><Briefcase size={12}/> Área:</span>
+                        <span className={`area-badge ${getAreaColorClass(vol.habilidad)}`}>{vol.habilidad || 'General'}</span>
+                    </div>
+                    <div className="tag-row mt-2">
+                        <span className="tag-label"><Clock size={12}/> Disponibilidad:</span>
+                        <div className="days-badges">
+                            <span className="day-badge">Sab</span>
+                            <span className="day-badge">Dom</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Footer Tarjeta */}
+                <div className="card-footer-modern">
+                    <div className="footer-item">
+                        <span className="footer-label">Experiencia</span>
+                        <span className="footer-text">{vol.antiguedad} años</span>
+                    </div>
+                    <div className="footer-item right">
+                        <span className="footer-label"><Calendar size={12}/> Registro</span>
+                        <span className="footer-text">14/03/2024</span>
+                    </div>
+                </div>
+
             </div>
             ))
         ) : (
-            <div style={{textAlign: 'center', padding: '2rem', color: '#999', border: '2px dashed #ddd', borderRadius: '8px'}}>No se encontraron voluntarios.</div>
+            <div className="empty-state">
+                <div className="empty-icon"><User size={48} /></div>
+                <h3>No se encontraron voluntarios</h3>
+                <p>Intenta ajustar los filtros de búsqueda.</p>
+            </div>
         )}
       </div>
-    </>
+    </div>
   );
 };
 
