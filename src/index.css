@@ -578,3 +578,46 @@ body {
 .icon-blue {
   color: #2563EB;
 }
+
+/* --- Estilos Botones NavBar 3D --- */
+.nav-btn-3d {
+  background-color: rgba(255, 255, 255, 0.1); /* Fondo sutil */
+  color: #FFFFFF;
+  border: 2px solid rgba(255, 255, 255, 0.8); /* El "Marco" solicitado */
+  border-radius: 12px;
+  padding: 8px 20px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  display: inline-flex;
+  align-items: center;
+  margin: 0 5px;
+  /* Sombra inicial suave */
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1); 
+  cursor: pointer;
+}
+
+/* Efecto al pasar el cursor (Hover) */
+.nav-btn-3d:hover {
+  transform: translateY(-4px) scale(1.05); /* Se eleva y crece */
+  background-color: #FFFFFF;
+  color: #DC2626; /* El texto se vuelve rojo Teletón */
+  border-color: #FFFFFF;
+  /* Sombra 3D más pronunciada */
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3); 
+}
+
+/* Efecto al hacer click (Active) */
+.nav-btn-3d:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Ajuste específico para el botón Salir si quieres que se vea igual o diferente */
+.btn-logout {
+  background-color: #263259; /* Azul oscuro */
+  border: 2px solid #263259;
+}
+.btn-logout:hover {
+  color: #263259; /* Texto azul al hacer hover */
+}

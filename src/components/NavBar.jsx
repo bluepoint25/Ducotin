@@ -7,109 +7,115 @@ const LOGO_URL = 'https://evento.teleton.cl/assets/logo-BIA0jwll.webp';
 
 // Paleta de Colores
 const TELETON_RED = '#EE3123';        
-const PRIMARY_BLUE_DARK = '#263259';  
 const TELETON_WHITE = '#FFFFFF';      
 
 const NavBar = ({ isLoggedIn, onLogout }) => {
     const navigate = useNavigate();
-    
-    // --- Estilos Inline para la Navbar ---
-    const navItemStyle = {
-        padding: '0 15px',
-        color: TELETON_WHITE,
-        textDecoration: 'none',
-        fontWeight: '500',
-        transition: 'opacity 0.2s',
-    };
-    
-    const logoutButtonStyle = {
-        backgroundColor: PRIMARY_BLUE_DARK,
-        color: TELETON_WHITE,
-        border: 'none',
-        borderRadius: '4px',
-        padding: '8px 15px',
-        cursor: 'pointer',
-        fontWeight: 'bold',
-        marginLeft: '20px',
-        transition: 'background-color 0.2s',
-    };
 
     const handleLogout = () => {
         onLogout();
         navigate('/login');
     };
 
-    // Estilos basados en el header de Dashboard.jsx
+    // Estilo del contenedor principal (Barra Roja)
     const headerStyle = {
         backgroundColor: TELETON_RED,
-        color: TELETON_WHITE,
-        padding: '10px 30px',
+        width: '100%',             // Ocupar todo el ancho
+        height: '80px',            // Un poco más alto para presencia
         display: 'flex',
-        justifyContent: 'space-between',
+        alignItems: 'center',      // Centrado vertical
+        justifyContent: 'space-between', // Separa Logo (Izq) de Botones (Der)
+        padding: '0 40px',         // Espacio a los costados
+        boxSizing: 'border-box',   // Para que el padding no rompa el ancho
+        boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)', // Sombra en la barra
+        position: 'fixed',         // Fijo arriba (opcional, si quieres que baje con scroll quita esto)
+        top: 0,
+        left: 0,
+        zIndex: 1000,
+    };
+
+    // Contenedor del Logo + Título
+    const leftSectionStyle = {
+        display: 'flex',
         alignItems: 'center',
-        minHeight: '65px',
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
-        width: '100%',
+        gap: '15px'
     };
 
     const logoWrapperStyle = {
         backgroundColor: TELETON_WHITE, 
-        padding: '5px',
-        borderRadius: '5px',
-        marginRight: '15px',
+        padding: '5px 10px',
+        borderRadius: '8px',
         display: 'flex',
         alignItems: 'center',
-        height: '45px',
+        boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
     };
 
     const logoStyle = {
         height: '45px',
+        width: 'auto'
     };
     
-    const linkContainerStyle = {
+    // Contenedor de los Botones (Alineados a la derecha)
+    const rightSectionStyle = {
         display: 'flex',
         alignItems: 'center',
-        flexGrow: 1, 
-        marginLeft: '20px',
+        gap: '10px' // Espacio entre botones
     };
     
-    // Si no está logeado, solo muestra el branding (para la página de Login)
+    // --- RENDERIZADO SI NO ESTÁ LOGUEADO (Solo Logo) ---
     if (!isLoggedIn) {
         return (
             <div style={headerStyle}>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div style={leftSectionStyle}>
                     <div style={logoWrapperStyle}>
                         <img src={LOGO_URL} alt="Logo Teletón" style={logoStyle} /> 
                     </div>
-                    <span style={{ fontSize: '1.4em', fontWeight: 700, color: TELETON_WHITE }}>CRM Voluntarios</span>
+                    <span style={{ fontSize: '1.5em', fontWeight: 800, color: TELETON_WHITE, letterSpacing: '1px' }}>
+                        CRM VOLUNTARIOS
+                    </span>
                 </div>
             </div>
         );
     }
 
-    // Si está logeado, muestra la navegación completa
+    // --- RENDERIZADO NORMAL (Con Botones) ---
     return (
-        <nav style={headerStyle}>
-            {/* Branding */}
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-                <div style={logoWrapperStyle}>
-                    <img src={LOGO_URL} alt="Logo Teletón" style={logoStyle} /> 
+        <>
+            {/* Espaciador para que el contenido no quede oculto bajo la barra fija */}
+            <div style={{ height: '80px' }}></div>
+
+            <nav style={headerStyle}>
+                {/* IZQUIERDA: Logo y Título */}
+                <div style={leftSectionStyle}>
+                    <div style={logoWrapperStyle}>
+                        <img src={LOGO_URL} alt="Logo Teletón" style={logoStyle} /> 
+                    </div>
+                    <span style={{ fontSize: '1.6em', fontWeight: 800, color: TELETON_WHITE, textTransform: 'uppercase' }}>
+                        CRM
+                    </span>
                 </div>
-                <span style={{ fontSize: '1.4em', fontWeight: 700, color: TELETON_WHITE }}>CRM</span>
-            </div>
-            
-            {/* Links de Navegación */}
-            <div style={linkContainerStyle}>
-                <Link to="/dashboard" style={navItemStyle}>Dashboard</Link>
-                <Link to="/registro" style={navItemStyle}>Registro Voluntario</Link>
-                <Link to="/buscador" style={navItemStyle}>Buscador Avanzado</Link>
-            </div>
-            
-            {/* Botón de Logout */}
-            <button onClick={handleLogout} style={logoutButtonStyle}>
-                Salir
-            </button>
-        </nav>
+                
+                {/* DERECHA: Botones de Navegación con clase 3D */}
+                <div style={rightSectionStyle}>
+                    <Link to="/dashboard" className="nav-btn-3d">
+                        Dashboard
+                    </Link>
+                    
+                    <Link to="/registro" className="nav-btn-3d">
+                        Registro Voluntario
+                    </Link>
+                    
+                    <Link to="/buscador" className="nav-btn-3d">
+                        Buscador Avanzado
+                    </Link>
+                    
+                    {/* Botón Salir (Añadimos clase extra para diferenciar color si quieres) */}
+                    <button onClick={handleLogout} className="nav-btn-3d btn-logout" style={{marginLeft: '15px'}}>
+                        Salir
+                    </button>
+                </div>
+            </nav>
+        </>
     );
 };
 
