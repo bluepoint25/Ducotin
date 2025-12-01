@@ -103,21 +103,24 @@ function App() {
         
         {/* NUEVA RUTA: Recuperar Contraseña (Pública) */}
         <Route path="/recuperar" element={<RecuperarPassword />} />
+{/* Rutas Protegidas */}
+          <Route element={<ProtectedRoute isLoggedIn={isLoggedIn}><AppLayout isLoggedIn={isLoggedIn} onLogout={() => setIsLoggedIn(false)} /></ProtectedRoute>}>
+              
+              {/* 👈 MODIFICAR ESTAS DOS LÍNEAS: Quitamos la prop 'voluntarios' / 'datos' */}
+              <Route path="/dashboard" element={<Dashboard />} /> 
+              <Route path="/buscador" element={<BuscadorVoluntarios />} /> 
 
-        {/* Rutas Protegidas */}
-        <Route element={<ProtectedRoute isLoggedIn={isLoggedIn}><AppLayout isLoggedIn={isLoggedIn} onLogout={() => setIsLoggedIn(false)} /></ProtectedRoute>}>
-            <Route path="/dashboard" element={<Dashboard voluntarios={voluntarios} />} />
-            <Route path="/registro" element={
-                <RegistroVoluntario 
-                    onGuardar={handleRegistroVoluntario} 
-                    onCargaMasiva={handleCargaMasiva} 
-                    baseDeDatos={voluntarios}
-                />
-            } />
-            <Route path="/buscador" element={<BuscadorVoluntarios datos={voluntarios}/>} />
-            <Route path="/voluntario/:id" element={<ComponenteVoluntarios mockVoluntarios={voluntarios} />} />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        </Route>
+              {/* Mantener las props en Registro y Voluntario ya que usan la lógica de mock data */}
+              <Route path="/registro" element={
+                  <RegistroVoluntario 
+                      onGuardar={handleRegistroVoluntario} 
+                      onCargaMasiva={handleCargaMasiva} 
+                      baseDeDatos={voluntarios}
+                  />
+              } />
+              <Route path="/voluntario/:id" element={<ComponenteVoluntarios mockVoluntarios={voluntarios} />} />
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          </Route>
         
         {/* 404 */}
         <Route path="*" element={<h1 style={{textAlign: 'center', marginTop: '100px'}}>404 - Página no encontrada</h1>} />

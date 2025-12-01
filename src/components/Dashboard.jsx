@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react'; // <--- AGREGADO: Hooks de React para API
 import { 
     LineChart, Line, BarChart, Bar, XAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
     PieChart, Pie, Cell 
@@ -6,6 +6,12 @@ import {
 import { User, Users } from 'lucide-react';
 import Calendario from './Calendario'; 
 import ChileMap from './ChileMap'; // <--- Integración del Mapa SVG
+
+// ==========================================================
+// 🚨 CONEXIÓN A API SPRING BOOT
+// Ajusta el HOST y el PUERTO según donde esté corriendo tu API
+// ==========================================================
+const API_BASE_URL = 'http://localhost:8080/api/v1/voluntarios'; 
 
 // --- PALETA DE COLORES TELETÓN ---
 const COLORS = {
@@ -21,7 +27,7 @@ const COLORS = {
     GRAY_HEADER: '#E5E7EB'
 };
 
-// --- DATOS SIMULADOS (MOCK DATA) ---
+// --- DATOS SIMULADOS (MOCK DATA) --- (Se mantienen para gráficos no conectados al API)
 const dataSegmentacion = [
     { year: '2020', voluntarios: 400, campana: 240 },
     { year: '2021', voluntarios: 300, campana: 139 },
@@ -46,7 +52,47 @@ const dataRetencion = [
 
 const Dashboard = ({ voluntarios = [] }) => {
 
-    // --- CÁLCULOS DINÁMICOS ---
+    // --- ESTADOS PARA LA API ---
+    // Inicializamos con 0 y objeto vacío para evitar errores de null
+    const [metricas, setMetricas] = useState({ totalVoluntarios: 0, distribucionGeografica: {} });
+    const [cargando, setCargando] = useState(true);
+    const [error, setError] = useState(null);
+    
+    // Desestructuración de los datos que vienen de Spring Boot
+    const { totalVoluntarios, distribucionGeografica } = metricas; 
+
+
+    /**
+     * Hook para cargar las métricas del dashboard desde el endpoint /metricas (RF-05)
+     */
+    useEffect(() => {
+        async function obtenerMetricas() {
+            try {
+                // Llama al endpoint GET /api/v1/voluntarios/metricas
+                const response = await fetch(`${API_BASE_URL}/metricas`); 
+                
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                // Data esperada: { totalVoluntarios: N, distribucionGeografica: {Region: Count} }
+                setMetricas(data); 
+                
+            } catch (err) {
+                console.error("Fallo la carga de métricas:", err);
+                setError("No fue posible conectar con la API o hubo un error en el servidor. Verifique que la API esté corriendo en el puerto 8080.");
+                
+            } finally {
+                setCargando(false); 
+            }
+        }
+
+        obtenerMetricas();
+    }, []); 
+
+    // --- CÁLCULOS DINÁMICOS (Basados en el Prop 'voluntarios') ---
+    // NOTA: Estas métricas seguirán mostrando 0 si no se pasan datos al prop 'voluntarios'.
     const countActivos = voluntarios.filter(v => v.estado === 'Activo').length;
     const countPermanentes = voluntarios.filter(v => v.tipoVoluntariado === 'Permanente').length;
     const countCampana = voluntarios.filter(v => v.tipoVoluntariado === 'Campaña').length;
@@ -56,8 +102,8 @@ const Dashboard = ({ voluntarios = [] }) => {
     const countHombres = voluntarios.filter(v => v.genero === 'Masculino' || v.genero === 'Hombre').length;
     
     const dataGeneroDinamic = [
-        { name: 'Mujeres', value: countMujeres },
-        { name: 'Hombres', value: countHombres }
+        { name: 'Mujeres', value: countMujeres, color: COLORS.FEMALE_PINK },
+        { name: 'Hombres', value: countHombres, color: '#7f1d1d' } // Mismo color que usas en el código
     ];
 
     // Últimos inscritos (Invertimos para ver los más nuevos primero)
@@ -69,6 +115,7 @@ const Dashboard = ({ voluntarios = [] }) => {
         avatar: v.nombre.charAt(0).toUpperCase()
     }));
 
+    // --- ESTILOS --- (Se mantienen como los tenías)
     const s = {
         container: {
             backgroundColor: COLORS.BG_GREY,
@@ -86,7 +133,7 @@ const Dashboard = ({ voluntarios = [] }) => {
         // --- LAYOUT DE GRID SUPERIOR (Con Mapa) ---
         gridRowTop: {
             display: 'grid',
-            // Gráficos | Mapa | Revenue
+            // Dist | Mapa | TOTAL VOLUNTARIOS
             gridTemplateColumns: '1.8fr 1fr 1.2fr', 
             gap: '25px', 
             alignItems: 'stretch', 
@@ -144,6 +191,35 @@ const Dashboard = ({ voluntarios = [] }) => {
         statSub: { fontSize: '0.65rem', fontWeight: '600', marginTop: 'auto' }
     };
 
+
+    // ==========================================================
+    // RENDERIZADO DE ESTADO (Loading/Error)
+    // ==========================================================
+    if (cargando) {
+        return (
+            <div style={{...s.container, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column'}}>
+                <User size={40} color={COLORS.RED_DARK} style={{marginBottom: '10px'}}/>
+                <div style={{color: COLORS.TEXT_MAIN, fontWeight: '600'}}>Cargando métricas de la API...</div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div style={{...s.container, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column'}}>
+                <div style={{fontSize: '1.2rem', fontWeight: 'bold', color: COLORS.RED_DARK, marginBottom: '10px'}}>
+                    ⚠️ Error de Conexión
+                </div>
+                <div style={{color: COLORS.TEXT_MAIN, maxWidth: '400px', textAlign: 'center'}}>
+                    {error}
+                </div>
+            </div>
+        );
+    }
+    
+    // ==========================================================
+    // RENDERIZADO PRINCIPAL
+    // ==========================================================
     return (
         <div style={s.container}>
             <div style={s.mainContent}>
@@ -151,13 +227,13 @@ const Dashboard = ({ voluntarios = [] }) => {
                 {/* ================= FILA SUPERIOR ================= */}
                 <div style={s.gridRowTop}>
                     
-                    {/* 1. DISTRIBUCIÓN */}
+                    {/* 1. DISTRIBUCIÓN DE DATOS SIMULADOS */}
                     <div style={s.card}>
                         <div style={s.cardHeader}>DISTRIBUCIÓN DE VOLUNTARIO</div>
                         <div style={s.cardBody}>
                             <div style={s.distribucionWrapper}>
                                 <div style={s.subChartContainer}>
-                                    <div style={s.subHeader}>SEGMENTACIÓN</div>
+                                    <div style={s.subHeader}>SEGMENTACIÓN (Simulado)</div>
                                     <div style={{flex: 1, minHeight: '250px'}}> 
                                         <ResponsiveContainer width="100%" height="100%">
                                             <LineChart data={dataSegmentacion}>
@@ -172,7 +248,7 @@ const Dashboard = ({ voluntarios = [] }) => {
                                     </div>
                                 </div>
                                 <div style={s.subChartContainer}>
-                                    <div style={s.subHeader}>CRECIMIENTO</div>
+                                    <div style={s.subHeader}>CRECIMIENTO (Simulado)</div>
                                     <div style={{flex: 1, minHeight: '250px'}}>
                                         <ResponsiveContainer width="100%" height="100%">
                                             <BarChart data={dataCrecimiento}>
@@ -188,33 +264,30 @@ const Dashboard = ({ voluntarios = [] }) => {
                         </div>
                     </div>
 
-                    {/* 2. MAPA DE CHILE (Integrado) */}
+                    {/* 2. MAPA DE CHILE (Integrado con distribucionGeografica) */}
                     <div style={s.card}>
                         <div style={s.cardHeader}>COBERTURA NACIONAL</div>
                         <div style={{...s.cardBody, padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                            {/* Aquí se renderiza tu nuevo componente SVG */}
                             <div style={{width: '100%', height: '100%', minHeight: '300px'}}>
-                                <ChileMap />
+                                {/* Pasamos los datos geográficos de la API al mapa */}
+                                <ChileMap distribucion={distribucionGeografica} /> 
                             </div>
                         </div>
                     </div>
 
-                    {/* 3. REVENUE */}
-                    <div style={s.card}>
-                        <div style={s.cardHeader}>REVENUE INCREASE</div>
-                        <div style={s.cardBody}>
-                            <div style={{flex: 1, minHeight: '280px'}}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={dataRetencion}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee"/>
-                                        <XAxis dataKey="quarter" fontSize={11} axisLine={false} tickLine={false}/>
-                                        <Tooltip contentStyle={{fontSize:'12px'}}/>
-                                        <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', top: 0 }}/>
-                                        <Line type="monotone" dataKey="nuevos" name="Referral" stroke="#F59E0B" strokeWidth={3} dot={{r:4}} />
-                                        <Line type="monotone" dataKey="recurrentes" name="Direct Lead" stroke="#854d0e" strokeWidth={3} dot={{r:4}} />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            </div>
+                    {/* 3. KPI TOTAL VOLUNTARIOS (Integrado con totalVoluntarios) */}
+                    <div style={{...s.card, minHeight: '100%'}}>
+                        <div style={{...s.cardHeader, backgroundColor: COLORS.BLUE_DARK, backgroundImage: 'none'}}>
+                            TOTAL VOLUNTARIOS (API)
+                        </div>
+                        <div style={{...s.cardBody, alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
+                            <Users size={80} color={COLORS.RED_DARK} strokeWidth={1.5} />
+                            <p style={{fontSize: '5rem', fontWeight: '900', color: COLORS.RED_DARK, margin: '10px 0'}}>
+                                {totalVoluntarios.toLocaleString('es-CL')} 
+                            </p>
+                            <p style={{fontSize: '1rem', color: COLORS.TEXT_LIGHT}}>
+                                (Voluntarios históricos registrados por el Bot)
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -233,7 +306,7 @@ const Dashboard = ({ voluntarios = [] }) => {
                         </div>
                     </div>
 
-                    {/* 5. LISTA VOLUNTARIOS (Dinámica) */}
+                    {/* 5. LISTA VOLUNTARIOS (Dinámica - se basa en el prop 'voluntarios') */}
                     <div style={s.card}>
                         <div style={s.cardHeader}>ÚLTIMOS INSCRITOS</div>
                         <div style={{...s.cardBody, padding: '0', overflowY: 'auto'}}> 
@@ -260,7 +333,7 @@ const Dashboard = ({ voluntarios = [] }) => {
                         </div>
                     </div>
 
-                    {/* 6. GÉNERO (Dinámico) */}
+                    {/* 6. GÉNERO (Dinámico - se basa en el prop 'voluntarios') */}
                     <div style={s.card}>
                         <div style={s.cardHeader}>GÉNERO</div>
                         <div style={{...s.cardBody, justifyContent: 'center', alignItems: 'center'}}>
@@ -268,8 +341,9 @@ const Dashboard = ({ voluntarios = [] }) => {
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie data={dataGeneroDinamic} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={0} dataKey="value">
-                                            <Cell fill={COLORS.FEMALE_PINK} /> 
-                                            <Cell fill="#7f1d1d" /> 
+                                            {dataGeneroDinamic.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
                                         </Pie>
                                         <Tooltip />
                                     </PieChart>
@@ -286,9 +360,9 @@ const Dashboard = ({ voluntarios = [] }) => {
                         </div>
                     </div>
 
-                    {/* 7. CONTADORES (Dinámicos) */}
+                    {/* 7. CONTADORES (Dinámicos - se basa en el prop 'voluntarios') */}
                     <div style={s.card}>
-                        <div style={s.cardHeader}>KPIs</div>
+                        <div style={s.cardHeader}>KPIs (Basado en Prop)</div>
                         <div style={s.cardBody}>
                             <div style={s.statsGrid}>
                                 <div style={{...s.statBox, backgroundColor: '#DCFCE7'}}> 

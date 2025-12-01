@@ -21,6 +21,8 @@ const Login = ({ onLoginSuccess }) => {
 
     const handleLogin = (e) => {
         e.preventDefault();
+        // Lógica de autenticación: Aquí se haría la llamada a la API de Spring Boot
+        // Si la autenticación es exitosa:
         if (onLoginSuccess) {
             onLoginSuccess();
             navigate('/dashboard'); 
