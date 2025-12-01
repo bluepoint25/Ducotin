@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Zap, Mail, Phone, Users, Calendar, BarChart2 } from 'lucide-react';
+import { Search, MapPin, Zap, Mail, Phone, Users, Calendar, BarChart2, Clock, Briefcase } from 'lucide-react';
+// useNavigate fue eliminado ya que el componente principal no lo usa en esta versión.
 
 // ==========================================================
-// 🚨 CONEXIÓN A API SPRING BOOT
+// 🚨 CONEXIÓN A API SPRING BOOT (Mantenido de HEAD)
 // ==========================================================
 const API_BASE_URL = 'http://localhost:8080/api/v1/voluntarios'; 
 
-// --- Datos de configuración para los select (deberían venir de una BD o archivo de configuración) ---
+// --- Datos de configuración para los select ---
 const REGIONES = [
     { label: 'Todas las Regiones', value: '' },
     { label: 'Región Metropolitana', value: 'Región Metropolitana' },
@@ -16,6 +17,9 @@ const REGIONES = [
     // ... agregar todas las regiones de Chile
 ];
 
+// **********************************************
+// Bloque HABILIDADES y HabilidadBadge (Mantenido de HEAD)
+// **********************************************
 const HABILIDADES = [
     { label: 'Todas las Habilidades', value: '' },
     { label: 'Lenguaje de Señas', value: 'Lenguaje de Señas' },
@@ -30,6 +34,8 @@ const HabilidadBadge = ({ habilidad }) => {
     if (habilidad.includes('Señas')) style = { backgroundColor: '#FFEDD5', color: '#9A3412' };
     if (habilidad.includes('Auxilios')) style = { backgroundColor: '#DCFCE7', color: '#166534' };
     if (habilidad.includes('Programación')) style = { backgroundColor: '#EFF6FF', color: '#1E40AF' };
+    if (habilidad.includes('Logística')) style = { backgroundColor: '#E0F2FE', color: '#0369A1' }; 
+    if (habilidad.includes('Salud')) style = { backgroundColor: '#FCE7F6', color: '#9D174D' };
 
     return (
         <span className="area-badge" style={style}>
@@ -37,6 +43,8 @@ const HabilidadBadge = ({ habilidad }) => {
         </span>
     );
 };
+// El componente 'BuscadorVoluntarios' anterior (del bloque remoto) fue eliminado para usar solo el export default.
+
 
 export default function BuscadorVoluntarios() {
     // 1. Estados de la búsqueda
